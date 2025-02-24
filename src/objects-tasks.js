@@ -375,44 +375,70 @@ function group(array, keySelector, valueSelector) {
  *
  *  For more examples see unit tests.
  */
-
-// const cssSelectorBuilder = {
-//   element(/* value */) {
-//     throw new Error('Not implemented');
-//   },
-
-//   id(/* value */) {
-//     throw new Error('Not implemented');
-//   },
-
-//   class(/* value */) {
-//     throw new Error('Not implemented');
-//   },
-
-//   attr(/* value */) {
-//     throw new Error('Not implemented');
-//   },
-
-//   pseudoClass(/* value */) {
-//     throw new Error('Not implemented');
-//   },
-
-//   pseudoElement(/* value */) {
-//     throw new Error('Not implemented');
-//   },
-
-//   combine(/* selector1, combinator, selector2 */) {
-//     throw new Error('Not implemented');
-//   },
-// };
-
 class Selector {
   constructor() {
     this.selectors = [];
+    this.order = [];
+    this.alreadyUsedElements = new Set();
   }
 
   element(value) {
+    this.checkSequence('element');
+    if (this.alreadyUsedElements.has('element')) {
+      throw new Error(
+        `"Element, id and pseudo-element should not occur more then one time inside the selector"`
+      );
+    }
     this.selectors.push(value);
+    this.order.push('element');
+    this.alreadyUsedElements.add('element');
+    return this;
+  }
+
+  id(value) {
+    this.checkSequence('id');
+    if (this.alreadyUsedElements.has('id')) {
+      throw new Error(
+        `"Element, id and pseudo-element should not occur more then one time inside the selector"`
+      );
+    }
+    this.selectors.push(`#${value}`);
+    this.order.push('id');
+    this.alreadyUsedElements.add('id');
+    return this;
+  }
+
+  class(value) {
+    this.checkSequence('class');
+    this.selectors.push(`.${value}`);
+    this.order.push('class');
+    return this;
+  }
+
+  attr(value) {
+    this.checkSequence('attr');
+    this.selectors.push(`[${value}]`);
+    this.order.push('attr');
+    return this;
+  }
+
+  pseudoClass(value) {
+    this.checkSequence('pseudoClass');
+    this.selectors.push(`:${value}`);
+    this.order.push('pseudoClass');
+    return this;
+  }
+
+  pseudoElement(value) {
+    this.checkSequence('pseudoElement');
+    if (this.alreadyUsedElements.has('pseudoElement')) {
+      throw new Error(
+        `"Element, id and pseudo-element should not occur more then one time inside the selector"`
+      );
+    }
+    this.selectors.push(`::${value}`);
+    this.order.push('pseudoElement');
+    this.alreadyUsedElements.add('pseudoElement');
     return this;
   }
 
@@ -420,29 +446,22 @@ class Selector {
     return this.selectors.join('');
   }
 
-  id(value) {
-    this.selectors.push(`#${value}`);
-    return this;
-  }
+  checkSequence(type) {
+    const correctSequence = [
+      'element',
+      'id',
+      'class',
+      'attr',
+      'pseudoClass',
+      'pseudoElement',
+    ];
+    const last = this.order[this.order.length - 1];
 
-  class(value) {
-    this.selectors.push(`.${value}`);
-    return this;
-  }
-
-  attr(value) {
-    this.selectors.push(`[${value}]`);
-    return this;
-  }
-
-  pseudoClass(value) {
-    this.parts.push(`:${value}`);
-    return this;
-  }
-
-  pseudoElement(value) {
-    this.selectors.push(`::${value}`);
-    return this;
+    if (last && correctSequence.indexOf(type) < correctSequence.indexOf(last)) {
+      throw new Error(
+        `"Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element"`
+      );
+    }
   }
 }
 
@@ -469,6 +488,13 @@ const cssSelectorBuilder = {
 
   pseudoElement(value) {
     return new Selector().pseudoElement(value);
+  },
+
+  combine(selectorA, combinator, selectorB) {
+    const combined = `${selectorA.stringify()} ${combinator} ${selectorB.stringify()}`;
+    const result = new Selector();
+    result.selectors.push(combined);
+    return result;
   },
 };
 
