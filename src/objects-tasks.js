@@ -177,6 +177,7 @@ function sellTickets(queue) {
       if (cashbox[50] >= 1 && cashbox[25] >= 1) {
         cashbox[50] -= 1;
         cashbox[25] -= 1;
+        return true;
       }
       if (cashbox[50] === 0 && cashbox[25] >= 3) {
         cashbox[25] -= 3;
@@ -375,33 +376,99 @@ function group(array, keySelector, valueSelector) {
  *  For more examples see unit tests.
  */
 
+// const cssSelectorBuilder = {
+//   element(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   id(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   class(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   attr(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   pseudoClass(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   pseudoElement(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   combine(/* selector1, combinator, selector2 */) {
+//     throw new Error('Not implemented');
+//   },
+// };
+
+class Selector {
+  constructor() {
+    this.selectors = [];
+  }
+
+  element(value) {
+    this.selectors.push(value);
+    return this;
+  }
+
+  stringify() {
+    return this.selectors.join('');
+  }
+
+  id(value) {
+    this.selectors.push(`#${value}`);
+    return this;
+  }
+
+  class(value) {
+    this.selectors.push(`.${value}`);
+    return this;
+  }
+
+  attr(value) {
+    this.selectors.push(`[${value}]`);
+    return this;
+  }
+
+  pseudoClass(value) {
+    this.parts.push(`:${value}`);
+    return this;
+  }
+
+  pseudoElement(value) {
+    this.selectors.push(`::${value}`);
+    return this;
+  }
+}
+
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    return new Selector().element(value);
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    return new Selector().id(value);
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    return new Selector().class(value);
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    return new Selector().attr(value);
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    return new Selector().pseudoClass(value);
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    return new Selector().pseudoElement(value);
   },
 };
 
